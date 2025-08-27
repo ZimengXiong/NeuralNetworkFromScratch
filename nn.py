@@ -2,6 +2,8 @@
 # Zimeng Xiong
 
 import numpy as np
+import copy
+import math
 
 imageDimension = 16
 hiddenLayerDimension = 16
@@ -50,7 +52,7 @@ flattenedImage = inputImage.reshape((256, 1))
 
 # neuron 1 weighted sum = (n1w1*i1) + (n1w2*i2) + (n1w3+*i3) + (n1w4*i4)
 
-hiddenLayer = weight1 @ flattenedImage + bias1
+hiddenLayerRaw = weight1 @ flattenedImage + bias1
 
 # Activation functions: allows the model to model non-linear relationships, otherwise
 # there is just a linear relationship between input and output (because its just multiplying
@@ -76,4 +78,77 @@ hiddenLayer = weight1 @ flattenedImage + bias1
 #   for the first layer to get any feedback and stop learning
 # Used for output layers for binary classification
 
-activatedHiddenLayer = np.maximum(0, hiddenLayer)
+# Use ReLU activation
+activatedHiddenLayer = np.maximum(0, hiddenLayerRaw)
+
+# Don't use sigmoid because we have multiple output nodes,
+# sigmoid is useful when there is on binary output node
+
+# Softmax takes the output from both neurons and fits them to a
+# probability distribution that adds up to 1.
+# e.g. [1.1, 4.0] -> [0.05, 0.95]
+
+# Don't use any activation function during the forward pass!
+# The loss function will have softmax built in
+
+# Calculate raw output, "logits"
+outputLayerRaw = weight2 @ activatedHiddenLayer + bias2
+
+# Cross-Entropy Loss function
+# Provides huge penalty to wrong answer with high confidence
+
+# Step one: apply softmax function
+# Turns unbounded raw inputs to a bounded probability distribution [0,1]
+
+# For each element, it's probability is e^(z\sub{i}) divided by
+# the summation of e^(z\sub{j}), where z\sub{j} for all elements
+
+# Step two: apply cross entropy loss
+# The cross entropy loss function exaggerates incorrect results
+# with large confidence
+
+# Take the summation of y\sub{i} times the natural log of p\sub{i},
+# where y\sub{i} is the true probability for class `i` and
+# p\sub{i} is the softmax normalized probability for the output layer for
+# the corresponding class i, for each class from i to k
+
+# y\sub{i} represents the "correct" answer, and
+# p\sub{i} represents the guessed answer amplified logarithmically
+# Thus, the log component of the unexpected answer (assuming a one-hot class probability)
+# is ignored, as y\sub{incorrect} = 0
+# Then, the log component of the expected answer term with y\sub{correct} is used in the
+# calculation of the loss.
+# If we denote the probability of the correct term (for a one-hot class, the log parameter attached
+# to the y\sub{i}=1)
+# This means as p\sub{correct} increases, log(p\sub{correct}) approaches 0 (as the range
+# for the log function is defined as [-\inf, 0]), the loss result approaches zero as
+# the X-Entropy function is inverted
+# Counter, as p\sub{correct} decreases, the logarithmic term approaches -inf rapidly
+# increasing loss result to +inf
+
+# This mechanism results in a smaller loss result when the correct answer has the higher probability
+# and high loss when the correct answer has lower probability
+
+# In this case it is known as a `one-hot` vector as the vector only contains
+# ones and zeros.
+# E.G. for class vertical, y\sub{horizontal}=0 and y\sub{vertical}=1
+
+
+def calculateLoss(rawOutputLayer, trueProbability):
+    # 1. Softmax
+    softmaxedProbability = []
+    softmaxSummation = 0
+
+    for zj in rawOutputLayer:
+        softmaxSummation += math.exp(zj)
+
+    for zi in rawOutputLayer:
+        softmaxedProbability.append(math.exp(zi) / softmaxSummation)
+
+    # 2. X-Entropy Loss
+    loss = 0
+    for yi, pi in (trueProbability, softmaxedProbability):
+        loss += yi * math.log10(pi)
+
+    loss = -loss
+    return loss
