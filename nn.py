@@ -2,8 +2,8 @@
 # Zimeng Xiong
 
 import numpy as np
-import copy
 import math
+import copy
 
 imageDimension = 16
 hiddenLayerDimension = 16
@@ -134,7 +134,7 @@ outputLayerRaw = weight2 @ activatedHiddenLayer + bias2
 # E.G. for class vertical, y\sub{horizontal}=0 and y\sub{vertical}=1
 
 
-def calculateLoss(rawOutputLayer, trueProbability):
+def calculateSoftmax(rawOutputLayer):
     # 1. Softmax
     softmaxedProbability = []
     softmaxSummation = 0
@@ -145,10 +145,111 @@ def calculateLoss(rawOutputLayer, trueProbability):
     for zi in rawOutputLayer:
         softmaxedProbability.append(math.exp(zi) / softmaxSummation)
 
+    # or alternatively:
+    # softmaxedProbability = np.exp(rawOutputLayer)/np.sum(np.exp(rawOutputLayer))
+    return softmaxedProbability
+
+
+def calculateLoss(softmaxedOutputLayer, trueProbability):
     # 2. X-Entropy Loss
     loss = 0
-    for yi, pi in (trueProbability, softmaxedProbability):
-        loss += yi * math.log10(pi)
+    for yi, pi in zip(trueProbability, softmaxedOutputLayer):
+        loss += yi * math.log(pi)
 
     loss = -loss
     return loss
+
+
+# Backpropagation: assigning blame to each neuron
+
+# 1. Output Layer
+# Output layer is simple to do, outputLayer-trueProbability
+
+# 2. Output Layer blame -> Activated Hidden Layer
+# Assign blame based on weight per neuron
+# Transpose weight into (hiddenLayerDimension, outputLayerDimension) so that
+# for every neuron in the hidden layer, there are outputLayerDimension weights associated with it
+# connecting it to the next layer
+# Calculate dot product (weighted sum) between the transposed blame matrix and
+# blame for the output layer, of dimension (hiddenLayerDimension, 1)
+# I.E. transposedWeights @ outputLayer
+
+# 3. Activated Hidden Layer blame -> Hidden Layer through ReLU Activation
+# If the neuron != 0 before activation, then its "responsible" for its output, and blame can be assigned to it
+#   through the ReLU layer
+# If the neuron = 0 before activation, then it had no effect on the next layer, so its blame is blocked
+
+# 4. Repeat step to calculate blame for weights between input and hidden layer
+
+# Gradients are adjustment instructions for a parameter
+# They have the same shape as the weight matrix, because they are applied
+# onto the weight matrix
+# E.G.
+# From Layer Gradient: [-0.3],
+#                        [-0.5]
+# Blamed Layer:          [5],
+#                        [6],
+#                        [3]
+# Weight Matrix:         [0.3, -0.6, 0.8]
+#                        [0.2, 0.9, -0.5]
+# Gradient Matrix: (fromLayerGradient @ blamedLayer.T)
+
+# To figure out how to calculate the adjustment instructions for a weight, we look at
+# its input signal and the output's blame
+
+
+# Calculate output layer blame
+def calculateOutputBackprop(softmaxedOutputLayer, trueProbability):
+    return np.array(softmaxedOutputLayer) - np.array(trueProbability)
+
+
+# Backprop through one layer
+def generateBlame(
+    fromLayerBlame,
+    toLayer,
+):
+    transposedLayer = toLayer.T
+    blamedWeights = transposedLayer @ fromLayerBlame
+    return blamedWeights
+
+
+# Backprop through ReLU
+def generateBlameThroughReLU(nonActivatedLayer, blamedWeights):
+    nonActivatedBlame = copy.copy(nonActivatedLayer)
+    for blameIndex, activatedNeuron in zip(range(blamedWeights), nonActivatedLayer):
+        if activatedNeuron == 0:
+            nonActivatedBlame[blameIndex] = 0
+
+    # alternatively:
+    # nonActivatedBlame = blamedWeights * (hiddenLayerRaw > 0)
+
+    return nonActivatedBlame
+
+
+def generateGradient(blame, weights):
+    return weights.T @ blame
+
+
+def getGradients(
+    inputLayer,
+    nonActivatedHiddenLayer,
+    activatedHiddenLayer,
+    softmaxedOutputLayer,
+    trueProbability,
+):
+    # Blame for output layer
+    gradient_Z2 = calculateOutputBackprop(softmaxedOutputLayer, trueProbability)
+
+    # Gradient for W2 with blame from output layer
+    gradient_W2 = generateGradient(gradient_Z2, activatedHiddenLayer)
+    gradient_b2 = gradient_Z2
+
+    # We need to pass through the blame back through the ReLU gate to calculate W1 and b1
+    # to get an accurate assessment of how W1 and b1 affected the next layer
+
+    gradient_W1 = generateGradient(
+        generateBlameThroughReLU(nonActivatedHiddenLayer, gradient_W2), inputLayer
+    )
+    gradient_b1 = gradient_W2
+
+    return zip(gradient_Z2, gradient_W2, gradient_b2, gradient_W1, gradient_b1)
