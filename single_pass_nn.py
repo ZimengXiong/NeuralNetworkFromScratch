@@ -240,4 +240,5 @@ def findGradients(A2, trueProbability, A1, Z1, W2, A0):
     dW1 = dZ1 @ A0.T
     db1 = dZ1
 
-    return zip(dW2, db2, dW1, db1)
+    return (dW2, db2, dW1, db1)
+
