@@ -2,11 +2,10 @@
 # Zimeng Xiong
 
 import numpy as np
-import math
-import copy
 import random
 from typing import Tuple
 from enum import Enum, auto
+
 
 class LineType(Enum):
     STRAIGHT = auto()
@@ -14,11 +13,11 @@ class LineType(Enum):
 
 
 class neuralNetwork:
-    def __init__(self) -> None:        
+    def __init__(self) -> None:
         self.imageDimension = 16
         self.hiddenLayerDimension = 16
         self.outputDimension = 2
-        '''
+        """
         # Define weights & biases for each layer
         # in (rows, columns)
 
@@ -27,7 +26,7 @@ class neuralNetwork:
         # Weights are defined as (layerTo, layerFrom), so that
         # each layer in neuron in layerTo has layerFrom connections to each
         # neuron in the previous layer
-        '''
+        """
         # Define learning rates
         self.learningRate = 0.01
 
@@ -62,22 +61,36 @@ class neuralNetwork:
 
         # Loss
         self.loss = 0
-    
+
     def generateImage(self):
         # createImage and type
         self.classification = random.choice([LineType.HORIZONTAL, LineType.STRAIGHT])
-        n = random.randint(0, self.imageDimension-1)
+        n = random.randint(0, self.imageDimension - 1)
         if self.classification == LineType.HORIZONTAL:
-            image = np.array([[1 if y==n else 0 for _ in range(0, self.imageDimension)] for y in range(0, self.imageDimension)])
+            image = np.array(
+                [
+                    [1 if y == n else 0 for _ in range(0, self.imageDimension)]
+                    for y in range(0, self.imageDimension)
+                ]
+            )
         else:
-            image = np.array([[1 if x==n else 0 for x in range(0, self.imageDimension)] for _ in range(0, self.imageDimension)])
-        
+            image = np.array(
+                [
+                    [1 if x == n else 0 for x in range(0, self.imageDimension)]
+                    for _ in range(0, self.imageDimension)
+                ]
+            )
+
         self.A0 = image.reshape((self.imageDimension**2, 1))
-        self.Y = np.array([[int(self.classification==LineType.HORIZONTAL)], [int(self.classification==LineType.STRAIGHT)]])
+        self.Y = np.array(
+            [
+                [int(self.classification == LineType.HORIZONTAL)],
+                [int(self.classification == LineType.STRAIGHT)],
+            ]
+        )
         # print("Raw Image")
         # print(image)
 
-    
     def calculateSoftmax(self):
         # 1. Softmax
         # softmaxedProbability = []
@@ -92,9 +105,8 @@ class neuralNetwork:
         # or alternatively:
         # self.A2 = softmaxedProbability
 
-        self.A2 = np.exp(self.Z2)/np.sum(np.exp(self.Z2))
-        
-    
+        self.A2 = np.exp(self.Z2) / np.sum(np.exp(self.Z2))
+
     def calculateLoss(self):
         # 2. X-Entropy Loss
         # loss = 0
@@ -108,14 +120,14 @@ class neuralNetwork:
         correctClassIndex = np.argmax(self.Y)
         predictedProb = self.A2[correctClassIndex, 0]
         # clip prob to be away from 0 and 1
-        safeProb = np.clip(predictedProb, 1e-9, 1-1e-9)
+        safeProb = np.clip(predictedProb, 1e-9, 1 - 1e-9)
 
         self.loss = -np.log(safeProb)
 
     def findGradients(self):
-        '''
+        """
         # Backpropagation
-        # Goal: calculate the gradient of the loss function w.r.t. each 
+        # Goal: calculate the gradient of the loss function w.r.t. each
         # parameter: W1, b1, W2, b2
 
         # Z/A0 -> W1 + b1 -> Z1 -> A1 -> W2 + b2 -> Z2 -> A2
@@ -126,7 +138,7 @@ class neuralNetwork:
         # Y is the one-hot true probability vector
 
         # A2:
-        # [0.63] 
+        # [0.63]
         # [0.37]
 
         # Y:
@@ -138,15 +150,15 @@ class neuralNetwork:
         # dW2 = Z2 @ A1.T
 
         # dZ2:
-        # [-0.37] 
+        # [-0.37]
         # [-0.63]
 
         # A1:
-        # [0.3] 
+        # [0.3]
         # [0.2]
-        # [0.8] 
+        # [0.8]
         # [0.9]
-        # [0.4] 
+        # [0.4]
         # [0.1]
 
         # A1.T:
@@ -156,14 +168,14 @@ class neuralNetwork:
         # Back prop using gradient dZ2, adding it to b2
         # db2 = dZ2
 
-        # Resultant is a matrix in the same shape as W2, that describes 
+        # Resultant is a matrix in the same shape as W2, that describes
         # for each neuron in the output layer the changes to each weight
         # that connects it to the previous layer based on how influencial/activated
         # the neuron in the previous layer is
 
         # Step #3a: Find error signal at output and w.r.t. A1
         # dA1 = W2.T @ dZ2
-        # dA1 has the same shape as A1, represents summation of 
+        # dA1 has the same shape as A1, represents summation of
         # errors for a neutron between the (in this case, two) neurons in the output layer
         # dA1:
         # [n1w1*dz2neuronError + n1w2*dz2neuronError] ..... []
@@ -176,8 +188,8 @@ class neuralNetwork:
         # Multiply the errors from dA1 by the deriative at the point
         # of the Z1 value in the ReLU function
 
-        # Step #4: repeat step #2 to find db1, dW1 
-        '''
+        # Step #4: repeat step #2 to find db1, dW1
+        """
         # Find dW2 and db2
         dZ2 = self.A2 - self.Y
         self.dW2 = dZ2 @ self.A1.T
@@ -193,10 +205,9 @@ class neuralNetwork:
         self.dW1 = dZ1 @ self.A0.T
         self.db1 = dZ1
 
-
     def forwardPass(self):
         # Flatten image
-        '''
+        """
         # a MxN matrix times a NxP matrix will result in a MxP result. N must match.
         # We use Matrix Multiplication so that for each hidden neuron we:
         # 1. Take the value of every neuron from the input layer
@@ -215,11 +226,11 @@ class neuralNetwork:
         #                [neuron 2 weighted sum]
 
         # neuron 1 weighted sum = (n1w1*i1) + (n1w2*i2) + (n1w3+*i3) + (n1w4*i4)
-        '''
+        """
 
         self.Z1 = self.W1 @ self.A0 + self.b1
 
-        '''
+        """
         # Activation functions: allows the model to model non-linear relationships, otherwise
         # there is just a linear relationship between input and output (because its just multiplying
         # by a set factor and adding a bias shift)
@@ -243,12 +254,12 @@ class neuralNetwork:
         #   you reach the final (first) layer, the values are too small
         #   for the first layer to get any feedback and stop learning
         # Used for output layers for binary classification
-        ''' 
+        """
 
         # Use ReLU activation
         self.A1 = np.maximum(0, self.Z1)
 
-        '''
+        """
         # Don't use sigmoid because we have multiple output nodes,
         # sigmoid is useful when there is on binary output node
 
@@ -260,11 +271,11 @@ class neuralNetwork:
         # The loss function will have softmax built in
 
         # Calculate raw output, "logits"
-        '''
-        
+        """
+
         # Generate output layer
         self.Z2 = self.W2 @ self.A1 + self.b2
-        '''
+        """
         # Cross-Entropy Loss function
         # Provides huge penalty to wrong answer with high confidence
 
@@ -303,18 +314,18 @@ class neuralNetwork:
         # In this case it is known as a `one-hot` vector as the vector only contains
         # ones and zeros.
         # E.G. for class vertical, y\sub{horizontal}=0 and y\sub{vertical}=1
-        '''
-        
+        """
+
         self.calculateSoftmax()
 
     def updateWeights(self):
-        '''
+        """
         Update weights with newParameter = oldParameter - (learning_rate*gradient)
-        '''
-        self.W1 -= self.dW1*self.learningRate
-        self.b1 -= self.db1*self.learningRate
-        self.W2 -= self.dW2*self.learningRate
-        self.b2 -= self.db2*self.learningRate
+        """
+        self.W1 -= self.dW1 * self.learningRate
+        self.b1 -= self.db1 * self.learningRate
+        self.W2 -= self.dW2 * self.learningRate
+        self.b2 -= self.db2 * self.learningRate
 
     def onePass(self):
         self.generateImage()
@@ -333,14 +344,14 @@ class neuralNetwork:
         # print(self.b2)
         self.updateWeights()
         self.calculateLoss()
-    
+
     def train(self, epochs):
         for i in range(epochs):
             # print(f"Epoch {i}")
             self.onePass()
             if i % 100 == 0:
                 print(self.loss)
-            
+
 
 network = neuralNetwork()
 network.train(10000)
