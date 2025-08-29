@@ -2,7 +2,7 @@
 
 [simpleNNFS.py](simpleNNFS.py)
 
-Learning attempt at a basic from scratch neural network with 1 input (256x), 1 hidden (16x), and 1 output (2x) layer using ReLU and Softmax activations with gradient calculations using XEntropy written in Python and NumPY capable of training, notes attached.
+A basic from-scratch neural network implemented in Python using NumPy, with one input layer (256 units for a 16×16 image), one hidden layer (16 units with ReLU activation), and one output layer (2 units with Softmax activation). Training is performed using cross-entropy loss with gradients computed via backpropagation, and parameters are updated using stochastic gradient descent capable of training on synthetic data consisting of horizontal and vertical line images, notes included.
 
 To run training:
 
