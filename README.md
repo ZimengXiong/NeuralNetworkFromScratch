@@ -1,8 +1,11 @@
 # Neural Network from Scratch
+A Collection of Neural networks implemented using NumPy and Python for learning
 
-[simpleNNFS.py](simpleNNFS.py)
+[simpleNN/](simpleNN/)
 
-A basic from-scratch neural network implemented in Python using NumPy, with one input layer (256 units for a 16×16 image), one hidden layer (16 units with ReLU activation), and one output layer (2 units with Softmax activation). Training is performed using cross-entropy loss with gradients computed via backpropagation, and parameters are updated using stochastic gradient descent capable of training on synthetic data consisting of horizontal and vertical line images, notes included.
+A basic from-scratch neural network implemented in Python using NumPy, with one input layer (256 units for a 16×16 image), one hidden layer (16 units with ReLU activation), and one output layer (2 units with Softmax activation). Training is performed using cross-entropy loss with gradients computed via backpropagation, and parameters are updated using stochastic gradient descent, training on synthetic data consisting of horizontal and vertical line images
+
+[simpleNN/simpleNNFS.py](simpleNN/simpleNNFS.py)
 
 To run training:
 
@@ -31,7 +34,7 @@ zimengx@kubuntu ~/C/NNFromScratch (main)> python3 simpleNNFS.py
 ```
 
 
-[runModel.py](runModel.py)
+[simpleNN/runModel.py](simpleNN/runModel.py)
 
 To run tests:
 

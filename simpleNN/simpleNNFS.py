@@ -163,7 +163,6 @@ class neuralNetwork:
         predictedProb = self.A2[correctClassIndex, 0]
         # clip prob to be away from 0 and 1
         safeProb = np.clip(predictedProb, 1e-9, 1 - 1e-9)
-
         self.loss = -np.log(safeProb)
 
     def findGradients(self):
