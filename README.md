@@ -29,3 +29,18 @@ zimengx@kubuntu ~/C/NNFromScratch (main)> python3 simpleNNFS.py
 0.027309717655647242
 0.037006739733842026
 ```
+
+
+[runModel.py](runModel.py)
+
+To run tests:
+
+```bash
+(.venv) zimengx@kubuntu ~/C/NNFromScratch (main)> python3 runModel.py
+Before Training: 
+Percentage Correct: 40.68%
+After Training: 
+Percentage Correct: 100.0%
+```
+
+The script generates and runs batches of 10000 images into the model and reports the percentage of the correctly identified before and after training with 1500 generated images.

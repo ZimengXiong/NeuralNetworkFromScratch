@@ -61,7 +61,14 @@ class neuralNetwork:
 
         # Loss
         self.loss = 0
+    def reset(self):
+        # Define weights
+        self.W1 = np.random.randn(self.hiddenLayerDimension, self.imageDimension**2)
+        self.b1 = np.random.randn(self.hiddenLayerDimension, 1)
 
+        self.W2 = np.random.randn(self.outputDimension, self.hiddenLayerDimension)
+        self.b2 = np.random.randn(self.outputDimension, 1)
+        
     def generateImage(self):
         # createImage and type
         self.classification = random.choice([LineType.HORIZONTAL, LineType.VERTICAL])

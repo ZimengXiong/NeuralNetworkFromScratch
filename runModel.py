@@ -1,5 +1,7 @@
 from simpleNNFS import neuralNetwork
 from simpleNNFS import LineType
+
+# Instantiates a instance of the network
 network = neuralNetwork()
 
 def runImage():
@@ -19,10 +21,13 @@ def runBatch(batches):
     print(f"Percentage Correct: {correct/batches*100}%")
 
 
+# Run a pre-training batch
 print("Before Training: ")
-runBatch(10)
+runBatch(10000)
 
-network.train(10000, verbose=False)
+# Train the network
+network.train(1500, verbose=False)
 
+# Run the post training batch
 print("After Training: ")
-runBatch(10)
+runBatch(10000)
