@@ -28,6 +28,8 @@ class neuralNetwork:
         # each layer in neuron in layerTo has layerFrom connections to each
         # neuron in the previous layer
         '''
+        # Define learning rates
+        self.learningRate = 0.01
 
         # Define weights
         self.W1 = np.random.randn(self.hiddenLayerDimension, self.imageDimension**2)
@@ -53,10 +55,13 @@ class neuralNetwork:
         self.Z2 = np.zeros((self.outputDimension, 1))
         self.A2 = np.zeros((self.outputDimension, 1))
 
-        self.dW2 = None
-        self.db2 = None
-        self.dW1 = None
-        self.db1 = None
+        self.dW1 = np.zeros((self.hiddenLayerDimension, self.imageDimension**2))
+        self.db1 = np.zeros((self.hiddenLayerDimension, 1))
+        self.dW2 = np.zeros((self.outputDimension, self.hiddenLayerDimension))
+        self.db2 = np.zeros((self.outputDimension, 1))
+
+        # Loss
+        self.loss = 0
     
     def generateImage(self):
         # createImage and type
@@ -69,8 +74,8 @@ class neuralNetwork:
         
         self.A0 = image.reshape((self.imageDimension**2, 1))
         self.Y = np.array([[int(self.classification==LineType.HORIZONTAL)], [int(self.classification==LineType.STRAIGHT)]])
-        print("Raw Image")
-        print(image)
+        # print("Raw Image")
+        # print(image)
 
     
     def calculateSoftmax(self):
@@ -92,12 +97,20 @@ class neuralNetwork:
     
     def calculateLoss(self):
         # 2. X-Entropy Loss
-        loss = 0
-        for yi, pi in zip(self.Y, self.A2):
-            loss += yi * math.log(pi)
+        # loss = 0
+        # for yi, pi in zip(self.Y, self.A2):
+        #     if pi < 1e-9:
+        #         pi=1e-9
+        #     loss += yi * math.log(pi)
 
-        loss = -loss
-        return loss
+        # loss = -loss
+        # self.loss = loss
+        correctClassIndex = np.argmax(self.Y)
+        predictedProb = self.A2[correctClassIndex, 0]
+        # clip prob to be away from 0 and 1
+        safeProb = np.clip(predictedProb, 1e-9, 1-1e-9)
+
+        self.loss = -np.log(safeProb)
 
     def findGradients(self):
         '''
@@ -165,7 +178,6 @@ class neuralNetwork:
 
         # Step #4: repeat step #2 to find db1, dW1 
         '''
-        
         # Find dW2 and db2
         dZ2 = self.A2 - self.Y
         self.dW2 = dZ2 @ self.A1.T
@@ -295,21 +307,40 @@ class neuralNetwork:
         
         self.calculateSoftmax()
 
+    def updateWeights(self):
+        '''
+        Update weights with newParameter = oldParameter - (learning_rate*gradient)
+        '''
+        self.W1 -= self.dW1*self.learningRate
+        self.b1 -= self.db1*self.learningRate
+        self.W2 -= self.dW2*self.learningRate
+        self.b2 -= self.db2*self.learningRate
+
     def onePass(self):
         self.generateImage()
         self.forwardPass()
         self.findGradients()
-        print("W1")
-        print(self.W1)
+        # print("W1")
+        # print(self.W1)
 
-        print("b1")
-        print(self.b1)
+        # print("b1")
+        # print(self.b1)
 
-        print("W2")
-        print(self.W2)
+        # print("W2")
+        # print(self.W2)
 
-        print("b2")
-        print(self.b2)
+        # print("b2")
+        # print(self.b2)
+        self.updateWeights()
+        self.calculateLoss()
+    
+    def train(self, epochs):
+        for i in range(epochs):
+            # print(f"Epoch {i}")
+            self.onePass()
+            if i % 100 == 0:
+                print(self.loss)
+            
 
 network = neuralNetwork()
-network.onePass()
+network.train(10000)
