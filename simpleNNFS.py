@@ -8,7 +8,7 @@ from enum import Enum, auto
 
 
 class LineType(Enum):
-    STRAIGHT = auto()
+    VERTICAL = auto()
     HORIZONTAL = auto()
 
 
@@ -64,7 +64,7 @@ class neuralNetwork:
 
     def generateImage(self):
         # createImage and type
-        self.classification = random.choice([LineType.HORIZONTAL, LineType.STRAIGHT])
+        self.classification = random.choice([LineType.HORIZONTAL, LineType.VERTICAL])
         n = random.randint(0, self.imageDimension - 1)
         if self.classification == LineType.HORIZONTAL:
             image = np.array(
@@ -85,11 +85,46 @@ class neuralNetwork:
         self.Y = np.array(
             [
                 [int(self.classification == LineType.HORIZONTAL)],
-                [int(self.classification == LineType.STRAIGHT)],
+                [int(self.classification == LineType.VERTICAL)],
             ]
         )
         # print("Raw Image")
         # print(image)
+    
+    def generateTestImage(self) -> Tuple[np.ndarray, np.ndarray]:
+        # createImage and type
+        classification = random.choice([LineType.HORIZONTAL, LineType.VERTICAL])
+        # print(f"Generating an image of class {classification}")
+        n = random.randint(0, self.imageDimension - 1)
+        if classification == LineType.HORIZONTAL:
+            image = np.array(
+                [
+                    [1 if y == n else 0 for _ in range(0, self.imageDimension)]
+                    for y in range(0, self.imageDimension)
+                ]
+            )
+        else:
+            image = np.array(
+                [
+                    [1 if x == n else 0 for x in range(0, self.imageDimension)]
+                    for _ in range(0, self.imageDimension)
+                ]
+            )
+        return (image, np.array(
+            [
+                [int(classification == LineType.HORIZONTAL)],
+                [int(classification == LineType.VERTICAL)],
+            ]
+        ))
+        # print("Raw Image")
+        # print(image)
+
+    def forwardPassWithImage(self, image, trueProb):
+        self.A0 = image.reshape((self.imageDimension**2, 1))
+        self.Y = trueProb
+        self.classification = LineType.HORIZONTAL if trueProb[0,0] else LineType.VERTICAL
+        self.forwardPass()
+
 
     def calculateSoftmax(self):
         # 1. Softmax
@@ -206,7 +241,6 @@ class neuralNetwork:
         self.db1 = dZ1
 
     def forwardPass(self):
-        # Flatten image
         """
         # a MxN matrix times a NxP matrix will result in a MxP result. N must match.
         # We use Matrix Multiplication so that for each hidden neuron we:
@@ -345,13 +379,10 @@ class neuralNetwork:
         self.updateWeights()
         self.calculateLoss()
 
-    def train(self, epochs):
+    def train(self, epochs, verbose=True):
         for i in range(epochs):
             # print(f"Epoch {i}")
             self.onePass()
             if i % 100 == 0:
-                print(self.loss)
-
-
-network = neuralNetwork()
-network.train(10000)
+                if verbose:
+                    print(self.loss)
