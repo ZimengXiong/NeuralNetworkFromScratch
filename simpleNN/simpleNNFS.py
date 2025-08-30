@@ -61,6 +61,7 @@ class neuralNetwork:
 
         # Loss
         self.loss = 0
+
     def reset(self):
         # Define weights
         self.W1 = np.random.randn(self.hiddenLayerDimension, self.imageDimension**2)
@@ -68,7 +69,7 @@ class neuralNetwork:
 
         self.W2 = np.random.randn(self.outputDimension, self.hiddenLayerDimension)
         self.b2 = np.random.randn(self.outputDimension, 1)
-        
+
     def generateImage(self):
         # createImage and type
         self.classification = random.choice([LineType.HORIZONTAL, LineType.VERTICAL])
@@ -97,7 +98,7 @@ class neuralNetwork:
         )
         # print("Raw Image")
         # print(image)
-    
+
     def generateTestImage(self) -> Tuple[np.ndarray, np.ndarray]:
         # createImage and type
         classification = random.choice([LineType.HORIZONTAL, LineType.VERTICAL])
@@ -117,21 +118,25 @@ class neuralNetwork:
                     for _ in range(0, self.imageDimension)
                 ]
             )
-        return (image, np.array(
-            [
-                [int(classification == LineType.HORIZONTAL)],
-                [int(classification == LineType.VERTICAL)],
-            ]
-        ))
+        return (
+            image,
+            np.array(
+                [
+                    [int(classification == LineType.HORIZONTAL)],
+                    [int(classification == LineType.VERTICAL)],
+                ]
+            ),
+        )
         # print("Raw Image")
         # print(image)
 
     def forwardPassWithImage(self, image, trueProb):
         self.A0 = image.reshape((self.imageDimension**2, 1))
         self.Y = trueProb
-        self.classification = LineType.HORIZONTAL if trueProb[0,0] else LineType.VERTICAL
+        self.classification = (
+            LineType.HORIZONTAL if trueProb[0, 0] else LineType.VERTICAL
+        )
         self.forwardPass()
-
 
     def calculateSoftmax(self):
         # 1. Softmax
