@@ -24,7 +24,7 @@ class neuralNetwork:
         self.b2 = np.random.randn(self.outputDimension, 1)
 
         # Define one-hot vector, i.e. true result
-        self.Y = np.zeros((10,1))
+        self.Y = np.zeros((10, 1))
 
         # Define layers
         # Input image flattened
@@ -47,11 +47,15 @@ class neuralNetwork:
         self.loss = 0
 
         # Gives a 60000, 28, 28 matrix
-        self.images = idx2numpy.convert_from_file('/home/zimengx/Code/NNFromScratch/MNISTDigitRecog/data/train-images.idx3-ubyte')
+        self.images = idx2numpy.convert_from_file(
+            "/home/zimengx/Code/NNFromScratch/MNISTDigitRecog/data/train-images.idx3-ubyte"
+        )
 
         # Gives a 60000 matrix
-        self.labels = idx2numpy.convert_from_file("/home/zimengx/Code/NNFromScratch/MNISTDigitRecog/data/train-labels.idx1-ubyte") 
-    
+        self.labels = idx2numpy.convert_from_file(
+            "/home/zimengx/Code/NNFromScratch/MNISTDigitRecog/data/train-labels.idx1-ubyte"
+        )
+
     def saveWeights(self):
         """Save all network state arrays to files"""
         # Save weights and biases
@@ -59,53 +63,61 @@ class neuralNetwork:
         self.W2.tofile("W2.dat")
         self.b1.tofile("b1.dat")
         self.b2.tofile("b2.dat")
-        
+
         # Save layer states
         self.A0.tofile("A0.dat")
         self.Z1.tofile("Z1.dat")
         self.A1.tofile("A1.dat")
         self.Z2.tofile("Z2.dat")
         self.A2.tofile("A2.dat")
-        
+
         # Save gradients
         self.dW1.tofile("dW1.dat")
         self.db1.tofile("db1.dat")
         self.dW2.tofile("dW2.dat")
         self.db2.tofile("db2.dat")
-        
+
         # Save one-hot vector and loss
         self.Y.tofile("Y.dat")
         np.array([self.loss]).tofile("loss.dat")
-    
+
     def loadWeights(self):
         """Load all network state arrays from files"""
         # Load weights and biases with proper reshaping
-        self.W1 = np.fromfile("W1.dat").reshape(self.hiddenLayerDimension, self.imageDimension**2)
-        self.W2 = np.fromfile("W2.dat").reshape(self.outputDimension, self.hiddenLayerDimension)
+        self.W1 = np.fromfile("W1.dat").reshape(
+            self.hiddenLayerDimension, self.imageDimension**2
+        )
+        self.W2 = np.fromfile("W2.dat").reshape(
+            self.outputDimension, self.hiddenLayerDimension
+        )
         self.b1 = np.fromfile("b1.dat").reshape(self.hiddenLayerDimension, 1)
         self.b2 = np.fromfile("b2.dat").reshape(self.outputDimension, 1)
-        
+
         # Load layer states
         self.A0 = np.fromfile("A0.dat").reshape(self.imageDimension**2, 1)
         self.Z1 = np.fromfile("Z1.dat").reshape(self.hiddenLayerDimension, 1)
         self.A1 = np.fromfile("A1.dat").reshape(self.hiddenLayerDimension, 1)
         self.Z2 = np.fromfile("Z2.dat").reshape(self.outputDimension, 1)
         self.A2 = np.fromfile("A2.dat").reshape(self.outputDimension, 1)
-        
+
         # Load gradients
-        self.dW1 = np.fromfile("dW1.dat").reshape(self.hiddenLayerDimension, self.imageDimension**2)
+        self.dW1 = np.fromfile("dW1.dat").reshape(
+            self.hiddenLayerDimension, self.imageDimension**2
+        )
         self.db1 = np.fromfile("db1.dat").reshape(self.hiddenLayerDimension, 1)
-        self.dW2 = np.fromfile("dW2.dat").reshape(self.outputDimension, self.hiddenLayerDimension)
+        self.dW2 = np.fromfile("dW2.dat").reshape(
+            self.outputDimension, self.hiddenLayerDimension
+        )
         self.db2 = np.fromfile("db2.dat").reshape(self.outputDimension, 1)
-        
+
         # Load one-hot vector and loss
         self.Y = np.fromfile("Y.dat").reshape(self.outputDimension, 1)
         self.loss = np.fromfile("loss.dat")[0]
 
     def loadImage(self, image: np.ndarray, label):
-        self.Y = np.array([[1] if x==label else [0] for x in range(10)])
+        self.Y = np.array([[1] if x == label else [0] for x in range(10)])
         self.A0 = image.reshape(self.imageDimension**2, 1)
-        self.A0 = self.A0/255
+        self.A0 = self.A0 / 255
 
     def calculateSoftmax(self):
         self.A2 = np.exp(self.Z2) / np.sum(np.exp(self.Z2))
@@ -141,11 +153,12 @@ class neuralNetwork:
 
         # Generate output layer
         self.Z2 = self.W2 @ self.A1 + self.b2
-    
+
         self.calculateSoftmax()
 
     def printShapes(self):
-        print(f"""
+        print(
+            f"""
         A0: {self.A0.shape} 
         A1: {self.A1.shape}
         A2: {self.A2.shape}
@@ -158,7 +171,8 @@ class neuralNetwork:
         dW1: {self.dW1.shape}
         dW2: {self.dW2.shape} 
         Y: {self.Y.shape}
-        """)
+        """
+        )
 
     def updateWeights(self):
         """
@@ -176,7 +190,7 @@ class neuralNetwork:
         self.findGradients()
         self.updateWeights()
         self.calculateLoss()
-    
+
     def passThroughAllImages(self):
         for image, label in zip(self.images, self.labels):
             self.onePass(image, label)
@@ -189,10 +203,11 @@ class neuralNetwork:
                 if verbose:
                     print(self.loss)
 
-    def runModel(self, image: np.ndarray, value) -> np.ndarray: 
+    def runModel(self, image: np.ndarray, value) -> np.ndarray:
         self.loadImage(image, value)
         self.forwardPass()
         return self.A2
+
 
 def toAscii(matrix):
     chars = " .:-=+*#%@"
@@ -204,12 +219,13 @@ def toAscii(matrix):
     lines = ["".join(chars[i] for i in row) for row in indices]
     return "\n".join(lines)
 
+
 network = neuralNetwork()
 network.loadWeights()
 
-images = idx2numpy.convert_from_file('data/t10k-images.idx3-ubyte')
+images = idx2numpy.convert_from_file("data/t10k-images.idx3-ubyte")
 labels = idx2numpy.convert_from_file("data/t10k-labels.idx1-ubyte")
-index = random.randint(0,10000-1)
+index = random.randint(0, 10000 - 1)
 
 output = network.runModel(images[index], labels[index])
 
